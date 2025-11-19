@@ -10,6 +10,29 @@ This repo contains 6 standalone scripts:
 - [export_to_ollama.py](export_to_ollama.py)
 - [inference_ollama.py](inference_ollama.py)
 
+## Project workflow (quick map)
+
+End-to-end flow (inputs -> outputs):
+- [setup_env.py](setup_env.py): installs dependencies and checks GPU
+- [load_model.py](load_model.py): sanity-checks model loading + VRAM usage
+- [prepare_dataset.py](prepare_dataset.py): raw dataset -> tokenized HF dataset at `artifacts/dataset`
+- [train_finetune.py](train_finetune.py): tokenized dataset -> LoRA adapter at `artifacts/lora`
+- [export_to_ollama.py](export_to_ollama.py): LoRA adapter -> merged HF model and optional GGUF at `artifacts/ollama`
+- [inference_ollama.py](inference_ollama.py): chat client for the Ollama model
+
+Data/artefact locations (defaults):
+- Input dataset: CSV/JSON/JSONL with `instruction`, `input`, `output`
+- Tokenized dataset: `artifacts/dataset`
+- LoRA adapter: `artifacts/lora`
+- Merged model: `artifacts/ollama/merged_hf`
+- GGUF export (if supported): `artifacts/ollama/gguf/*.gguf`
+- Ollama Modelfile: `artifacts/ollama/Modelfile`
+
+Script arguments (high level):
+- Common model id: `unsloth/llama-3.1-8b-unsloth-bnb-4bit`
+- Sequence length: `--max_seq_length` in [prepare_dataset.py](prepare_dataset.py) and [train_finetune.py](train_finetune.py)
+- VRAM safety: keep batch size small; scale with `--gradient_accumulation_steps`
+
 ## 0) Platform notes (Windows + RTX 5070)
 
 - Ollama runs on Windows.
