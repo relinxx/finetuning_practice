@@ -24,6 +24,13 @@ import subprocess
 
 import torch
 
+from config import (
+    DEFAULT_LORA_ALPHA,
+    DEFAULT_LORA_DROPOUT,
+    DEFAULT_LORA_R,
+    DEFAULT_MAX_SEQ_LENGTH,
+    DEFAULT_MODEL_ID,
+)
 from logging_utils import setup_logging
 
 logger = logging.getLogger(__name__)
@@ -74,13 +81,13 @@ def main() -> None:
     parser.add_argument(
         "--model",
         type=str,
-        default="unsloth/llama-3.1-8b-unsloth-bnb-4bit",
+        default=DEFAULT_MODEL_ID,
         help="HF model id (4-bit recommended for 8–12GB GPUs).",
     )
-    parser.add_argument("--max_seq_length", type=int, default=2048)
-    parser.add_argument("--lora_r", type=int, default=16)
-    parser.add_argument("--lora_alpha", type=int, default=16)
-    parser.add_argument("--lora_dropout", type=float, default=0.0)
+    parser.add_argument("--max_seq_length", type=int, default=DEFAULT_MAX_SEQ_LENGTH)
+    parser.add_argument("--lora_r", type=int, default=DEFAULT_LORA_R)
+    parser.add_argument("--lora_alpha", type=int, default=DEFAULT_LORA_ALPHA)
+    parser.add_argument("--lora_dropout", type=float, default=DEFAULT_LORA_DROPOUT)
 
     args = parser.parse_args()
 

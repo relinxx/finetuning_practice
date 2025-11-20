@@ -33,6 +33,13 @@ from typing import Any
 from datasets import Dataset, DatasetDict
 from transformers import AutoTokenizer
 
+from config import (
+    DEFAULT_DATASET_DIR,
+    DEFAULT_MAX_SEQ_LENGTH,
+    DEFAULT_MODEL_ID,
+    DEFAULT_SEED,
+    DEFAULT_VAL_RATIO,
+)
 from logging_utils import setup_logging
 
 logger = logging.getLogger(__name__)
@@ -123,13 +130,13 @@ def main() -> None:
     parser.add_argument(
         "--model",
         type=str,
-        default="unsloth/llama-3.1-8b-unsloth-bnb-4bit",
+        default=DEFAULT_MODEL_ID,
         help="Model id used to load the tokenizer.",
     )
-    parser.add_argument("--out_dir", type=str, default="artifacts/dataset")
-    parser.add_argument("--val_ratio", type=float, default=0.02)
-    parser.add_argument("--seed", type=int, default=3407)
-    parser.add_argument("--max_seq_length", type=int, default=2048)
+    parser.add_argument("--out_dir", type=str, default=DEFAULT_DATASET_DIR)
+    parser.add_argument("--val_ratio", type=float, default=DEFAULT_VAL_RATIO)
+    parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
+    parser.add_argument("--max_seq_length", type=int, default=DEFAULT_MAX_SEQ_LENGTH)
 
     args = parser.parse_args()
 

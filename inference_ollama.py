@@ -22,6 +22,13 @@ import logging
 
 import ollama
 
+from config import (
+    DEFAULT_MAX_SEQ_LENGTH,
+    DEFAULT_OLLAMA_NAME,
+    DEFAULT_SYSTEM_PROMPT,
+    DEFAULT_TEMPERATURE,
+    DEFAULT_TOP_P,
+)
 from logging_utils import setup_logging
 
 logger = logging.getLogger(__name__)
@@ -30,11 +37,11 @@ logger = logging.getLogger(__name__)
 def main() -> None:
     setup_logging()
     parser = argparse.ArgumentParser(description="Interactive inference via Ollama")
-    parser.add_argument("--model", type=str, default="finetuned-llama")
-    parser.add_argument("--system", type=str, default="You are a helpful assistant.")
-    parser.add_argument("--num_ctx", type=int, default=2048)
-    parser.add_argument("--temperature", type=float, default=0.7)
-    parser.add_argument("--top_p", type=float, default=0.9)
+    parser.add_argument("--model", type=str, default=DEFAULT_OLLAMA_NAME)
+    parser.add_argument("--system", type=str, default=DEFAULT_SYSTEM_PROMPT)
+    parser.add_argument("--num_ctx", type=int, default=DEFAULT_MAX_SEQ_LENGTH)
+    parser.add_argument("--temperature", type=float, default=DEFAULT_TEMPERATURE)
+    parser.add_argument("--top_p", type=float, default=DEFAULT_TOP_P)
 
     args = parser.parse_args()
 

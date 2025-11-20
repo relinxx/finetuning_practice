@@ -32,6 +32,23 @@ import torch
 from datasets import load_from_disk
 from transformers import TrainingArguments
 
+from config import (
+    DEFAULT_DATASET_DIR,
+    DEFAULT_EPOCHS,
+    DEFAULT_EVAL_STEPS,
+    DEFAULT_GRADIENT_ACCUMULATION_STEPS,
+    DEFAULT_LEARNING_RATE,
+    DEFAULT_LOGGING_STEPS,
+    DEFAULT_LORA_ALPHA,
+    DEFAULT_LORA_DROPOUT,
+    DEFAULT_LORA_R,
+    DEFAULT_LORA_DIR,
+    DEFAULT_MAX_SEQ_LENGTH,
+    DEFAULT_MODEL_ID,
+    DEFAULT_PER_DEVICE_TRAIN_BATCH_SIZE,
+    DEFAULT_SAVE_STEPS,
+    DEFAULT_WARMUP_STEPS,
+)
 from logging_utils import setup_logging
 
 logger = logging.getLogger(__name__)
@@ -57,28 +74,36 @@ def main() -> None:
     parser.add_argument(
         "--model",
         type=str,
-        default="unsloth/llama-3.1-8b-unsloth-bnb-4bit",
+        default=DEFAULT_MODEL_ID,
         help="4-bit base model id",
     )
-    parser.add_argument("--dataset_dir", type=str, default="artifacts/dataset")
-    parser.add_argument("--out_dir", type=str, default="artifacts/lora")
-    parser.add_argument("--max_seq_length", type=int, default=2048)
+    parser.add_argument("--dataset_dir", type=str, default=DEFAULT_DATASET_DIR)
+    parser.add_argument("--out_dir", type=str, default=DEFAULT_LORA_DIR)
+    parser.add_argument("--max_seq_length", type=int, default=DEFAULT_MAX_SEQ_LENGTH)
 
     # Safe defaults for 8–12GB VRAM.
-    parser.add_argument("--learning_rate", type=float, default=2e-4)
-    parser.add_argument("--num_train_epochs", type=float, default=1.0)
-    parser.add_argument("--per_device_train_batch_size", type=int, default=1)
-    parser.add_argument("--gradient_accumulation_steps", type=int, default=8)
-    parser.add_argument("--warmup_steps", type=int, default=20)
-    parser.add_argument("--logging_steps", type=int, default=10)
-    parser.add_argument("--save_steps", type=int, default=200)
+    parser.add_argument("--learning_rate", type=float, default=DEFAULT_LEARNING_RATE)
+    parser.add_argument("--num_train_epochs", type=float, default=DEFAULT_EPOCHS)
+    parser.add_argument(
+        "--per_device_train_batch_size",
+        type=int,
+        default=DEFAULT_PER_DEVICE_TRAIN_BATCH_SIZE,
+    )
+    parser.add_argument(
+        "--gradient_accumulation_steps",
+        type=int,
+        default=DEFAULT_GRADIENT_ACCUMULATION_STEPS,
+    )
+    parser.add_argument("--warmup_steps", type=int, default=DEFAULT_WARMUP_STEPS)
+    parser.add_argument("--logging_steps", type=int, default=DEFAULT_LOGGING_STEPS)
+    parser.add_argument("--save_steps", type=int, default=DEFAULT_SAVE_STEPS)
 
     parser.add_argument("--do_eval", action="store_true")
-    parser.add_argument("--eval_steps", type=int, default=200)
+    parser.add_argument("--eval_steps", type=int, default=DEFAULT_EVAL_STEPS)
 
-    parser.add_argument("--lora_r", type=int, default=16)
-    parser.add_argument("--lora_alpha", type=int, default=16)
-    parser.add_argument("--lora_dropout", type=float, default=0.0)
+    parser.add_argument("--lora_r", type=int, default=DEFAULT_LORA_R)
+    parser.add_argument("--lora_alpha", type=int, default=DEFAULT_LORA_ALPHA)
+    parser.add_argument("--lora_dropout", type=float, default=DEFAULT_LORA_DROPOUT)
 
     parser.add_argument(
         "--merge_out",

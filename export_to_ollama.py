@@ -30,6 +30,13 @@ from pathlib import Path
 
 import torch
 
+from config import (
+    DEFAULT_GGUF_QUANT,
+    DEFAULT_LORA_DIR,
+    DEFAULT_MODEL_ID,
+    DEFAULT_OLLAMA_NAME,
+    DEFAULT_OLLAMA_OUT_DIR,
+)
 from logging_utils import setup_logging
 
 logger = logging.getLogger(__name__)
@@ -50,21 +57,21 @@ def main() -> None:
     parser.add_argument(
         "--base_model",
         type=str,
-        default="unsloth/llama-3.1-8b-unsloth-bnb-4bit",
+        default=DEFAULT_MODEL_ID,
         help="Base model id",
     )
     parser.add_argument(
         "--lora_dir",
         type=str,
-        default="artifacts/lora",
+        default=DEFAULT_LORA_DIR,
         help="Directory containing trained LoRA adapter (output of train_finetune.py)",
     )
-    parser.add_argument("--out_dir", type=str, default="artifacts/ollama")
-    parser.add_argument("--ollama_name", type=str, default="finetuned-llama")
+    parser.add_argument("--out_dir", type=str, default=DEFAULT_OLLAMA_OUT_DIR)
+    parser.add_argument("--ollama_name", type=str, default=DEFAULT_OLLAMA_NAME)
     parser.add_argument(
         "--gguf_quant",
         type=str,
-        default="q4_k_m",
+        default=DEFAULT_GGUF_QUANT,
         help="GGUF quantization method (if supported by exporter).",
     )
     parser.add_argument(
