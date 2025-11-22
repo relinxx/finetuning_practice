@@ -77,17 +77,45 @@ def try_nvidia_smi() -> None:
 
 def main() -> None:
     setup_logging()
-    parser = argparse.ArgumentParser(description="Load a 4-bit Unsloth model and print VRAM usage")
+    parser = argparse.ArgumentParser(
+        description="Load a 4-bit Unsloth model and print VRAM usage",
+        epilog="""
+Examples:
+  python load_model.py
+  python load_model.py --model unsloth/llama-3.1-8b-unsloth-bnb-4bit --max_seq_length 2048
+        """,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument(
         "--model",
         type=str,
         default=DEFAULT_MODEL_ID,
-        help="HF model id (4-bit recommended for 8–12GB GPUs).",
+        help=f"HF model ID (4-bit recommended for 8–12GB GPUs). Default: {DEFAULT_MODEL_ID}",
     )
-    parser.add_argument("--max_seq_length", type=int, default=DEFAULT_MAX_SEQ_LENGTH)
-    parser.add_argument("--lora_r", type=int, default=DEFAULT_LORA_R)
-    parser.add_argument("--lora_alpha", type=int, default=DEFAULT_LORA_ALPHA)
-    parser.add_argument("--lora_dropout", type=float, default=DEFAULT_LORA_DROPOUT)
+    parser.add_argument(
+        "--max_seq_length",
+        type=int,
+        default=DEFAULT_MAX_SEQ_LENGTH,
+        help=f"Maximum sequence length. Default: {DEFAULT_MAX_SEQ_LENGTH}",
+    )
+    parser.add_argument(
+        "--lora_r",
+        type=int,
+        default=DEFAULT_LORA_R,
+        help=f"LoRA rank. Default: {DEFAULT_LORA_R}",
+    )
+    parser.add_argument(
+        "--lora_alpha",
+        type=int,
+        default=DEFAULT_LORA_ALPHA,
+        help=f"LoRA alpha. Default: {DEFAULT_LORA_ALPHA}",
+    )
+    parser.add_argument(
+        "--lora_dropout",
+        type=float,
+        default=DEFAULT_LORA_DROPOUT,
+        help=f"LoRA dropout. Default: {DEFAULT_LORA_DROPOUT}",
+    )
 
     args = parser.parse_args()
 

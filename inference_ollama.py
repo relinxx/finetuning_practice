@@ -36,12 +36,45 @@ logger = logging.getLogger(__name__)
 
 def main() -> None:
     setup_logging()
-    parser = argparse.ArgumentParser(description="Interactive inference via Ollama")
-    parser.add_argument("--model", type=str, default=DEFAULT_OLLAMA_NAME)
-    parser.add_argument("--system", type=str, default=DEFAULT_SYSTEM_PROMPT)
-    parser.add_argument("--num_ctx", type=int, default=DEFAULT_MAX_SEQ_LENGTH)
-    parser.add_argument("--temperature", type=float, default=DEFAULT_TEMPERATURE)
-    parser.add_argument("--top_p", type=float, default=DEFAULT_TOP_P)
+    parser = argparse.ArgumentParser(
+        description="Interactive inference via Ollama",
+        epilog="""
+Examples:
+  python inference_ollama.py --model finetuned-llama
+  python inference_ollama.py --model mymodel --temperature 0.8 --num_ctx 1024
+        """,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default=DEFAULT_OLLAMA_NAME,
+        help=f"Ollama model name. Default: {DEFAULT_OLLAMA_NAME}",
+    )
+    parser.add_argument(
+        "--system",
+        type=str,
+        default=DEFAULT_SYSTEM_PROMPT,
+        help=f"System prompt. Default: {DEFAULT_SYSTEM_PROMPT}",
+    )
+    parser.add_argument(
+        "--num_ctx",
+        type=int,
+        default=DEFAULT_MAX_SEQ_LENGTH,
+        help=f"Context length. Default: {DEFAULT_MAX_SEQ_LENGTH}",
+    )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=DEFAULT_TEMPERATURE,
+        help=f"Sampling temperature. Default: {DEFAULT_TEMPERATURE}",
+    )
+    parser.add_argument(
+        "--top_p",
+        type=float,
+        default=DEFAULT_TOP_P,
+        help=f"Top-p sampling. Default: {DEFAULT_TOP_P}",
+    )
 
     args = parser.parse_args()
 

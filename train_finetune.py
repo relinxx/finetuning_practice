@@ -70,40 +70,111 @@ def print_vram(tag: str) -> None:
 
 def main() -> None:
     setup_logging()
-    parser = argparse.ArgumentParser(description="Fine-tune a 4-bit model with Unsloth QLoRA")
+    parser = argparse.ArgumentParser(
+        description="Fine-tune a 4-bit model with Unsloth QLoRA",
+        epilog="""
+Examples:
+  python train_finetune.py --dataset_dir artifacts/dataset --out_dir artifacts/lora
+  python train_finetune.py --dataset_dir artifacts/dataset --out_dir artifacts/lora --do_eval --merge_out artifacts/merged_model
+        """,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument(
         "--model",
         type=str,
         default=DEFAULT_MODEL_ID,
-        help="4-bit base model id",
+        help=f"4-bit base model ID. Default: {DEFAULT_MODEL_ID}",
     )
-    parser.add_argument("--dataset_dir", type=str, default=DEFAULT_DATASET_DIR)
-    parser.add_argument("--out_dir", type=str, default=DEFAULT_LORA_DIR)
-    parser.add_argument("--max_seq_length", type=int, default=DEFAULT_MAX_SEQ_LENGTH)
+    parser.add_argument(
+        "--dataset_dir",
+        type=str,
+        default=DEFAULT_DATASET_DIR,
+        help=f"Directory with tokenized dataset (from prepare_dataset.py). Default: {DEFAULT_DATASET_DIR}",
+    )
+    parser.add_argument(
+        "--out_dir",
+        type=str,
+        default=DEFAULT_LORA_DIR,
+        help=f"Output directory for LoRA adapter. Default: {DEFAULT_LORA_DIR}",
+    )
+    parser.add_argument(
+        "--max_seq_length",
+        type=int,
+        default=DEFAULT_MAX_SEQ_LENGTH,
+        help=f"Maximum sequence length. Default: {DEFAULT_MAX_SEQ_LENGTH}",
+    )
 
-    # Safe defaults for 8–12GB VRAM.
-    parser.add_argument("--learning_rate", type=float, default=DEFAULT_LEARNING_RATE)
-    parser.add_argument("--num_train_epochs", type=float, default=DEFAULT_EPOCHS)
+    # Training hyperparameters
+    parser.add_argument(
+        "--learning_rate",
+        type=float,
+        default=DEFAULT_LEARNING_RATE,
+        help=f"Learning rate. Default: {DEFAULT_LEARNING_RATE}",
+    )
+    parser.add_argument(
+        "--num_train_epochs",
+        type=float,
+        default=DEFAULT_EPOCHS,
+        help=f"Number of training epochs. Default: {DEFAULT_EPOCHS}",
+    )
     parser.add_argument(
         "--per_device_train_batch_size",
         type=int,
         default=DEFAULT_PER_DEVICE_TRAIN_BATCH_SIZE,
+        help=f"Batch size per device. Default: {DEFAULT_PER_DEVICE_TRAIN_BATCH_SIZE}",
     )
     parser.add_argument(
         "--gradient_accumulation_steps",
         type=int,
         default=DEFAULT_GRADIENT_ACCUMULATION_STEPS,
+        help=f"Gradient accumulation steps. Default: {DEFAULT_GRADIENT_ACCUMULATION_STEPS}",
     )
-    parser.add_argument("--warmup_steps", type=int, default=DEFAULT_WARMUP_STEPS)
-    parser.add_argument("--logging_steps", type=int, default=DEFAULT_LOGGING_STEPS)
-    parser.add_argument("--save_steps", type=int, default=DEFAULT_SAVE_STEPS)
+    parser.add_argument(
+        "--warmup_steps",
+        type=int,
+        default=DEFAULT_WARMUP_STEPS,
+        help=f"Warmup steps. Default: {DEFAULT_WARMUP_STEPS}",
+    )
+    parser.add_argument(
+        "--logging_steps",
+        type=int,
+        default=DEFAULT_LOGGING_STEPS,
+        help=f"Logging interval. Default: {DEFAULT_LOGGING_STEPS}",
+    )
+    parser.add_argument(
+        "--save_steps",
+        type=int,
+        default=DEFAULT_SAVE_STEPS,
+        help=f"Checkpoint save interval. Default: {DEFAULT_SAVE_STEPS}",
+    )
 
-    parser.add_argument("--do_eval", action="store_true")
-    parser.add_argument("--eval_steps", type=int, default=DEFAULT_EVAL_STEPS)
+    parser.add_argument("--do_eval", action="store_true", help="Enable validation loss logging if validation split exists.")
+    parser.add_argument(
+        "--eval_steps",
+        type=int,
+        default=DEFAULT_EVAL_STEPS,
+        help=f"Evaluation interval. Default: {DEFAULT_EVAL_STEPS}",
+    )
 
-    parser.add_argument("--lora_r", type=int, default=DEFAULT_LORA_R)
-    parser.add_argument("--lora_alpha", type=int, default=DEFAULT_LORA_ALPHA)
-    parser.add_argument("--lora_dropout", type=float, default=DEFAULT_LORA_DROPOUT)
+    # LoRA parameters
+    parser.add_argument(
+        "--lora_r",
+        type=int,
+        default=DEFAULT_LORA_R,
+        help=f"LoRA rank. Default: {DEFAULT_LORA_R}",
+    )
+    parser.add_argument(
+        "--lora_alpha",
+        type=int,
+        default=DEFAULT_LORA_ALPHA,
+        help=f"LoRA alpha. Default: {DEFAULT_LORA_ALPHA}",
+    )
+    parser.add_argument(
+        "--lora_dropout",
+        type=float,
+        default=DEFAULT_LORA_DROPOUT,
+        help=f"LoRA dropout. Default: {DEFAULT_LORA_DROPOUT}",
+    )
 
     parser.add_argument(
         "--merge_out",

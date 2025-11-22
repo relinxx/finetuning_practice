@@ -35,6 +35,8 @@ Script arguments (high level):
 
 Defaults are centralized in [config.py](config.py). Override via CLI arguments as needed.
 
+Run any script with `--help` for detailed usage and examples.
+
 ## 0) Platform notes (Windows + RTX 5070)
 
 - Ollama runs on Windows.

@@ -138,7 +138,16 @@ else:
 
 def main() -> None:
     setup_logging()
-    parser = argparse.ArgumentParser(description="Setup environment for Unsloth fine-tuning + Ollama")
+    parser = argparse.ArgumentParser(
+        description="Setup environment for Unsloth fine-tuning + Ollama",
+        epilog="""
+Examples:
+  python setup_env.py --venv .venv
+  python setup_env.py --venv .venv --torch_index_url https://download.pytorch.org/whl/cu121
+  python setup_env.py --post_check_only
+        """,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument(
         "--venv",
         type=str,

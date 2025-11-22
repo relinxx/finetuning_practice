@@ -53,26 +53,44 @@ def run(cmd: list[str], *, check: bool = False) -> int:
 
 def main() -> None:
     setup_logging()
-    parser = argparse.ArgumentParser(description="Export a fine-tuned model to Ollama")
+    parser = argparse.ArgumentParser(
+        description="Export a fine-tuned model to Ollama",
+        epilog="""
+Examples:
+  python export_to_ollama.py --lora_dir artifacts/lora --out_dir artifacts/ollama --ollama_name mymodel
+  python export_to_ollama.py --lora_dir artifacts/lora --out_dir artifacts/ollama --ollama_name mymodel --create
+        """,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument(
         "--base_model",
         type=str,
         default=DEFAULT_MODEL_ID,
-        help="Base model id",
+        help=f"Base model ID. Default: {DEFAULT_MODEL_ID}",
     )
     parser.add_argument(
         "--lora_dir",
         type=str,
         default=DEFAULT_LORA_DIR,
-        help="Directory containing trained LoRA adapter (output of train_finetune.py)",
+        help=f"Directory containing trained LoRA adapter (output of train_finetune.py). Default: {DEFAULT_LORA_DIR}",
     )
-    parser.add_argument("--out_dir", type=str, default=DEFAULT_OLLAMA_OUT_DIR)
-    parser.add_argument("--ollama_name", type=str, default=DEFAULT_OLLAMA_NAME)
+    parser.add_argument(
+        "--out_dir",
+        type=str,
+        default=DEFAULT_OLLAMA_OUT_DIR,
+        help=f"Output directory for Ollama files. Default: {DEFAULT_OLLAMA_OUT_DIR}",
+    )
+    parser.add_argument(
+        "--ollama_name",
+        type=str,
+        default=DEFAULT_OLLAMA_NAME,
+        help=f"Name for the Ollama model. Default: {DEFAULT_OLLAMA_NAME}",
+    )
     parser.add_argument(
         "--gguf_quant",
         type=str,
         default=DEFAULT_GGUF_QUANT,
-        help="GGUF quantization method (if supported by exporter).",
+        help=f"GGUF quantization method (if supported by exporter). Default: {DEFAULT_GGUF_QUANT}",
     )
     parser.add_argument(
         "--create",

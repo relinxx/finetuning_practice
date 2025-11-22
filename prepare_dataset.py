@@ -125,18 +125,51 @@ def build_text(instruction: str, user_input: str, output: str) -> str:
 
 def main() -> None:
     setup_logging()
-    parser = argparse.ArgumentParser(description="Prepare/tokenize dataset for Unsloth fine-tuning")
-    parser.add_argument("--data", type=str, required=True, help="Path to CSV/JSON/JSONL")
+    parser = argparse.ArgumentParser(
+        description="Prepare/tokenize dataset for Unsloth fine-tuning",
+        epilog="""
+Examples:
+  python prepare_dataset.py --data data/train.jsonl --out_dir artifacts/dataset
+  python prepare_dataset.py --data data/train.csv --out_dir artifacts/dataset --val_ratio 0.05 --max_seq_length 1024
+        """,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--data",
+        type=str,
+        required=True,
+        help="Path to input dataset file (CSV, JSON, or JSONL). Must contain 'instruction', 'input' (optional), and 'output' fields.",
+    )
     parser.add_argument(
         "--model",
         type=str,
         default=DEFAULT_MODEL_ID,
-        help="Model id used to load the tokenizer.",
+        help=f"Model ID for tokenizer loading. Default: {DEFAULT_MODEL_ID}",
     )
-    parser.add_argument("--out_dir", type=str, default=DEFAULT_DATASET_DIR)
-    parser.add_argument("--val_ratio", type=float, default=DEFAULT_VAL_RATIO)
-    parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
-    parser.add_argument("--max_seq_length", type=int, default=DEFAULT_MAX_SEQ_LENGTH)
+    parser.add_argument(
+        "--out_dir",
+        type=str,
+        default=DEFAULT_DATASET_DIR,
+        help=f"Output directory for tokenized dataset. Default: {DEFAULT_DATASET_DIR}",
+    )
+    parser.add_argument(
+        "--val_ratio",
+        type=float,
+        default=DEFAULT_VAL_RATIO,
+        help=f"Fraction of data for validation split (0.0 to 1.0). Default: {DEFAULT_VAL_RATIO}",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=DEFAULT_SEED,
+        help=f"Random seed for shuffling/splitting. Default: {DEFAULT_SEED}",
+    )
+    parser.add_argument(
+        "--max_seq_length",
+        type=int,
+        default=DEFAULT_MAX_SEQ_LENGTH,
+        help=f"Maximum sequence length for tokenization. Default: {DEFAULT_MAX_SEQ_LENGTH}",
+    )
 
     args = parser.parse_args()
 
