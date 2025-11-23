@@ -46,61 +46,100 @@ logger = logging.getLogger(__name__)
 
 
 def load_rows(path: Path) -> list[dict[str, str]]:
-    """Load examples from CSV/JSON/JSONL into a list of dicts."""
+    """Load examples from CSV/JSON/JSONL into a list of dicts with validation.
+
+    Validates that each row has non-empty 'instruction' and 'output' fields.
+    Fails fast with clear error messages on invalid data.
+    """
+    if not path.exists():
+        raise SystemExit(f"Input file does not exist: {path}")
+
     suffix = path.suffix.lower()
 
     if suffix == ".csv":
         rows: list[dict[str, str]] = []
         with path.open("r", encoding="utf-8", newline="") as f:
             reader = csv.DictReader(f)
-            for r in reader:
-                rows.append(
-                    {
-                        "instruction": (r.get("instruction") or "").strip(),
-                        "input": (r.get("input") or "").strip( ),
-                        "output": (r.get("output") or "").strip(),
-                    }
-                )
+            for row_num, r in enumerate(reader, start=2):  # CSV rows start at 1, but header is 1
+                try:
+                    instruction = (r.get("instruction") or "").strip()
+                    input_text = (r.get("input") or "").strip()
+                    output = (r.get("output") or "").strip()
+
+                    if not instruction:
+                        raise ValueError(f"Row {row_num}: 'instruction' is empty or missing")
+                    if not output:
+                        raise ValueError(f"Row {row_num}: 'output' is empty or missing")
+
+                    rows.append({
+                        "instruction": instruction,
+                        "input": input_text,
+                        "output": output,
+                    })
+                except ValueError as e:
+                    raise SystemExit(f"Validation error in {path}: {e}")
         return rows
 
     if suffix in {".json", ".jsonl"}:
         if suffix == ".jsonl":
             rows = []
             with path.open("r", encoding="utf-8") as f:
-                for line in f:
+                for line_num, line in enumerate(f, start=1):
                     line = line.strip()
                     if not line:
                         continue
-                    obj = json.loads(line)
-                    rows.append(
-                        {
-                            "instruction": str(obj.get("instruction", "")).strip(),
-                            "input": str(obj.get("input", "")).strip(),
-                            "output": str(obj.get("output", "")).strip(),
-                        }
-                    )
+                    try:
+                        obj = json.loads(line)
+                        instruction = str(obj.get("instruction", "")).strip()
+                        input_text = str(obj.get("input", "")).strip()
+                        output = str(obj.get("output", "")).strip()
+
+                        if not instruction:
+                            raise ValueError(f"Line {line_num}: 'instruction' is empty or missing")
+                        if not output:
+                            raise ValueError(f"Line {line_num}: 'output' is empty or missing")
+
+                        rows.append({
+                            "instruction": instruction,
+                            "input": input_text,
+                            "output": output,
+                        })
+                    except (json.JSONDecodeError, ValueError) as e:
+                        raise SystemExit(f"Validation error in {path} at line {line_num}: {e}")
             return rows
 
         # .json
-        obj: Any
-        with path.open("r", encoding="utf-8") as f:
-            obj = json.load(f)
+        try:
+            with path.open("r", encoding="utf-8") as f:
+                obj = json.load(f)
+        except json.JSONDecodeError as e:
+            raise SystemExit(f"Invalid JSON in {path}: {e}")
 
         if isinstance(obj, dict) and "data" in obj:
             obj = obj["data"]
 
         if not isinstance(obj, list):
-            raise ValueError("JSON must be a list[dict] or a dict with key 'data' = list[dict].")
+            raise SystemExit(f"JSON must be a list[dict] or a dict with key 'data' = list[dict] in {path}.")
 
         rows = []
-        for r in obj:
-            rows.append(
-                {
-                    "instruction": str(r.get("instruction", "")).strip(),
-                    "input": str(r.get("input", "")).strip(),
-                    "output": str(r.get("output", "")).strip(),
-                }
-            )
+        for idx, r in enumerate(obj, start=1):
+            try:
+                instruction = str(r.get("instruction", "")).strip()
+                input_text = str(r.get("input", "")).strip()
+                output = str(r.get("output", "")).strip()
+
+                if not instruction:
+                    raise ValueError(f"Item {idx}: 'instruction' is empty or missing")
+                if not output:
+                    raise ValueError(f"Item {idx}: 'output' is empty or missing")
+
+                rows.append({
+                    "instruction": instruction,
+                    "input": input_text,
+                    "output": output,
+                })
+            except (TypeError, ValueError) as e:
+                raise SystemExit(f"Validation error in {path} at item {idx}: {e}")
         return rows
 
     raise ValueError(f"Unsupported file type: {suffix} (use .csv, .json, or .jsonl)")
@@ -178,9 +217,8 @@ Examples:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     rows = load_rows(data_path)
-    rows = [r for r in rows if r["instruction"] and r["output"]]
     if not rows:
-        raise SystemExit("No valid rows found. Ensure 'instruction' and 'output' are non-empty.")
+        raise SystemExit("No valid rows found after validation. Ensure data has 'instruction' and 'output' fields.")
 
     logger.info("Loaded %s examples", len(rows))
 
