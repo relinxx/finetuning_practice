@@ -37,6 +37,13 @@ Defaults are centralized in [config.py](config.py). Override via CLI arguments a
 
 Run any script with `--help` for detailed usage and examples.
 
+## Testing
+
+Run unit tests with:
+- `python -m pytest test_prepare_dataset.py -v`
+
+(Requires pytest in environment; install via `pip install pytest`)
+
 ## 0) Platform notes (Windows + RTX 5070)
 
 - Ollama runs on Windows.

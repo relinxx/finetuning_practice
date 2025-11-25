@@ -30,6 +30,7 @@ pandas
 pyarrow
 tqdm
 rich
+pytest
 
 # Unsloth
 unsloth
