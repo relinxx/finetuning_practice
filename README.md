@@ -51,6 +51,7 @@ Run type checking with:
 
 (Requires mypy; install via `pip install mypy`)
 
+
 ## 0) Platform notes (Windows + RTX 5070)
 
 - Ollama runs on Windows.
