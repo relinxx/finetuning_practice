@@ -56,7 +56,7 @@ Run type checking with:
 
 - Ollama runs on Windows
 - Unsloth fine-tuning is most reliable on Linux (including WSL2 Ubuntu on Windows).
-- If you try native Windows Python and Unsloth install/import fails, use WSL2 for the fine-tuning steps.
+- If you try native Windows Python and Unsloth install/import fails, use WSL2 for the fine-tuning steps
 
 ## 1) Create & activate environment
 
