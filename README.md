@@ -44,6 +44,13 @@ Run unit tests with:
 
 (Requires pytest in environment; install via `pip install pytest`)
 
+## Type Checking
+
+Run type checking with:
+- `python -m mypy prepare_dataset.py --ignore-missing-imports`
+
+(Requires mypy; install via `pip install mypy`)
+
 ## 0) Platform notes (Windows + RTX 5070)
 
 - Ollama runs on Windows.

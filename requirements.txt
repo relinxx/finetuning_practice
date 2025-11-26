@@ -31,6 +31,7 @@ pyarrow
 tqdm
 rich
 pytest
+mypy
 
 # Unsloth
 unsloth

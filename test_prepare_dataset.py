@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from prepare_dataset import build_text, load_rows
+from prepare_dataset import Example, build_text, load_rows
 
 
 class TestBuildText:

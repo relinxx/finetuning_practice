@@ -28,7 +28,7 @@ import csv
 import json
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, TypedDict
 
 from datasets import Dataset, DatasetDict
 from transformers import AutoTokenizer
@@ -45,7 +45,13 @@ from logging_utils import setup_logging
 logger = logging.getLogger(__name__)
 
 
-def load_rows(path: Path) -> list[dict[str, str]]:
+class Example(TypedDict):
+    instruction: str
+    input: str
+    output: str
+
+
+def load_rows(path: Path) -> list[Example]:
     """Load examples from CSV/JSON/JSONL into a list of dicts with validation.
 
     Validates that each row has non-empty 'instruction' and 'output' fields.
