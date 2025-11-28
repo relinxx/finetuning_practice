@@ -48,7 +48,7 @@ Run unit tests with
 
 ## Type Checking
 
-Run type checking with:
+Run type checking with
 - `python -m mypy prepare_dataset.py --ignore-missing-imports`
 
 (Requires mypy; install via `pip install mypy`)
