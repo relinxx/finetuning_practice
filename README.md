@@ -64,7 +64,7 @@ Run type checking with
 
 ### Option A (recommended on Windows): WSL2 Ubuntu
 
-Create and activate a venv:
+Create and activate a venv
 - `python3 -m venv .venv`
 - `source .venv/bin/activate`
 
