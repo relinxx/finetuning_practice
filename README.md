@@ -41,7 +41,7 @@ Run any script with `--help` for detailed usage and examples.
 
 ## Testing
 
-Run unit tests with:
+Run unit tests with
 - `python -m pytest test_prepare_dataset.py -v`
 
 (Requires pytest in environment; install via `pip install pytest`)
