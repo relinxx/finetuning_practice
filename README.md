@@ -35,7 +35,7 @@ Script arguments (high level):
 
 Defaults are centralized in [config.py](config.py). Override via CLI arguments as needed.
 
-Shared utilities are in [utils.py](utils.py).
+Shared utilities are in [utils.py](utils.py)
 
 Run any script with `--help` for detailed usage and examples.
 
