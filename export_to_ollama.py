@@ -118,12 +118,16 @@ Examples:
 
     from unsloth import FastLanguageModel
 
-    model, tokenizer = FastLanguageModel.from_pretrained(
-        model_name=args.base_model,
-        max_seq_length=2048,
-        dtype=None,
-        load_in_4bit=True,
-    )
+    try:
+        model, tokenizer = FastLanguageModel.from_pretrained(
+            model_name=args.base_model,
+            max_seq_length=2048,
+            dtype=None,
+            load_in_4bit=True,
+        )
+    except Exception as e:
+        logger.error("Failed to load base model: %s", e)
+        raise SystemExit("Model loading failed. Check model ID and network connection.")
 
     # Load adapter weights.
     try:

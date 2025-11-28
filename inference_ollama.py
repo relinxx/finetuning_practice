@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import time
 
 import ollama
 
@@ -30,6 +31,7 @@ from config import (
     DEFAULT_TOP_P,
 )
 from logging_utils import setup_logging
+from utils import retry_with_backoff
 
 logger = logging.getLogger(__name__)
 
@@ -101,16 +103,19 @@ Examples:
         print("Assistant> ", end="", flush=True)
         response_text = ""
         try:
-            stream = ollama.chat(
-                model=args.model,
-                messages=messages,
-                stream=True,
-                options={
-                    "num_ctx": args.num_ctx,
-                    "temperature": args.temperature,
-                    "top_p": args.top_p,
-                },
-            )
+            def chat_call():
+                return ollama.chat(
+                    model=args.model,
+                    messages=messages,
+                    stream=True,
+                    options={
+                        "num_ctx": args.num_ctx,
+                        "temperature": args.temperature,
+                        "top_p": args.top_p,
+                    },
+                )
+
+            stream = retry_with_backoff(chat_call, max_retries=2)
             for part in stream:
                 token = part.get("message", {}).get("content", "")
                 if token:

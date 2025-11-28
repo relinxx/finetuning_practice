@@ -6,10 +6,32 @@ import json
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
-from typing import Any, TypedDict
+from typing import Any, Callable, TypeVar
 
 import torch
+
+T = TypeVar('T')
+
+
+def retry_with_backoff(
+    func: Callable[[], T],
+    max_retries: int = 3,
+    backoff_factor: float = 2.0,
+    initial_delay: float = 1.0,
+) -> T:
+    """Retry a function with exponential backoff on exceptions."""
+    delay = initial_delay
+    for attempt in range(max_retries + 1):
+        try:
+            return func()
+        except Exception as e:
+            if attempt == max_retries:
+                raise
+            print(f"Attempt {attempt + 1} failed: {e}. Retrying in {delay:.1f}s...")
+            time.sleep(delay)
+            delay *= backoff_factor
 
 
 class Example(TypedDict):
@@ -110,62 +132,68 @@ def load_rows(path: Path) -> list[Example]:
         import csv
 
         rows: list[Example] = []
-        with path.open("r", encoding="utf-8", newline="") as f:
-            reader = csv.DictReader(f)
-            for row_num, r in enumerate(reader, start=2):  # CSV rows start at 1, but header is 1
-                try:
-                    instruction = (r.get("instruction") or "").strip()
-                    input_text = (r.get("input") or "").strip()
-                    output = (r.get("output") or "").strip()
-
-                    if not instruction:
-                        raise ValueError(f"Row {row_num}: 'instruction' is empty or missing")
-                    if not output:
-                        raise ValueError(f"Row {row_num}: 'output' is empty or missing")
-
-                    rows.append({
-                        "instruction": instruction,
-                        "input": input_text,
-                        "output": output,
-                    })
-                except ValueError as e:
-                    raise SystemExit(f"Validation error in {path}: {e}")
-        return rows
-
-    if suffix in {".json", ".jsonl"}:
-        if suffix == ".jsonl":
-            rows = []
-            with path.open("r", encoding="utf-8") as f:
-                for line_num, line in enumerate(f, start=1):
-                    line = line.strip()
-                    if not line:
-                        continue
+        try:
+            with path.open("r", encoding="utf-8", newline="") as f:
+                reader = csv.DictReader(f)
+                for row_num, r in enumerate(reader, start=2):  # CSV rows start at 1, but header is 1
                     try:
-                        obj = json.loads(line)
-                        instruction = str(obj.get("instruction", "")).strip()
-                        input_text = str(obj.get("input", "")).strip()
-                        output = str(obj.get("output", "")).strip()
+                        instruction = (r.get("instruction") or "").strip()
+                        input_text = (r.get("input") or "").strip()
+                        output = (r.get("output") or "").strip()
 
                         if not instruction:
-                            raise ValueError(f"Line {line_num}: 'instruction' is empty or missing")
+                            raise ValueError(f"Row {row_num}: 'instruction' is empty or missing")
                         if not output:
-                            raise ValueError(f"Line {line_num}: 'output' is empty or missing")
+                            raise ValueError(f"Row {row_num}: 'output' is empty or missing")
 
                         rows.append({
                             "instruction": instruction,
                             "input": input_text,
                             "output": output,
                         })
-                    except (json.JSONDecodeError, ValueError) as e:
-                        raise SystemExit(f"Validation error in {path} at line {line_num}: {e}")
+                    except ValueError as e:
+                        raise SystemExit(f"Validation error in {path}: {e}")
+        except (OSError, UnicodeDecodeError) as e:
+            raise SystemExit(f"Failed to read CSV file {path}: {e}")
+        return rows
+
+    if suffix in {".json", ".jsonl"}:
+        if suffix == ".jsonl":
+            rows = []
+            try:
+                with path.open("r", encoding="utf-8") as f:
+                    for line_num, line in enumerate(f, start=1):
+                        line = line.strip()
+                        if not line:
+                            continue
+                        try:
+                            obj = json.loads(line)
+                            instruction = str(obj.get("instruction", "")).strip()
+                            input_text = str(obj.get("input", "")).strip()
+                            output = str(obj.get("output", "")).strip()
+
+                            if not instruction:
+                                raise ValueError(f"Line {line_num}: 'instruction' is empty or missing")
+                            if not output:
+                                raise ValueError(f"Line {line_num}: 'output' is empty or missing")
+
+                            rows.append({
+                                "instruction": instruction,
+                                "input": input_text,
+                                "output": output,
+                            })
+                        except (json.JSONDecodeError, ValueError) as e:
+                            raise SystemExit(f"Validation error in {path} at line {line_num}: {e}")
+            except (OSError, UnicodeDecodeError) as e:
+                raise SystemExit(f"Failed to read JSONL file {path}: {e}")
             return rows
 
         # .json
         try:
             with path.open("r", encoding="utf-8") as f:
                 obj = json.load(f)
-        except json.JSONDecodeError as e:
-            raise SystemExit(f"Invalid JSON in {path}: {e}")
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as e:
+            raise SystemExit(f"Failed to read JSON file {path}: {e}")
 
         if isinstance(obj, dict) and "data" in obj:
             obj = obj["data"]

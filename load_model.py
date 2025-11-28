@@ -133,35 +133,43 @@ Examples:
 
     from unsloth import FastLanguageModel  # imported after env vars
 
-    model, tokenizer = FastLanguageModel.from_pretrained(
-        model_name=args.model,
-        max_seq_length=args.max_seq_length,
-        dtype=None,  # let Unsloth pick bf16/fp16
-        load_in_4bit=True,
-    )
+    try:
+        model, tokenizer = FastLanguageModel.from_pretrained(
+            model_name=args.model,
+            max_seq_length=args.max_seq_length,
+            dtype=None,  # let Unsloth pick bf16/fp16
+            load_in_4bit=True,
+        )
+    except Exception as e:
+        logger.error("Failed to load base model: %s", e)
+        raise SystemExit("Model loading failed. Check model ID and network connection.")
 
     print_vram("after_base_load")
 
     # Attach LoRA adapters (parameter-efficient fine-tuning). This is the QLoRA pattern when
     # the base weights are loaded in 4-bit.
-    model = FastLanguageModel.get_peft_model(
-        model,
-        r=args.lora_r,
-        target_modules=[
-            "q_proj",
-            "k_proj",
-            "v_proj",
-            "o_proj",
-            "gate_proj",
-            "up_proj",
-            "down_proj",
-        ],
-        lora_alpha=args.lora_alpha,
-        lora_dropout=args.lora_dropout,
-        bias="none",
-        use_gradient_checkpointing="unsloth",  # helps fit longer context in limited VRAM
-        random_state=3407,
-    )
+    try:
+        model = FastLanguageModel.get_peft_model(
+            model,
+            r=args.lora_r,
+            target_modules=[
+                "q_proj",
+                "k_proj",
+                "v_proj",
+                "o_proj",
+                "gate_proj",
+                "up_proj",
+                "down_proj",
+            ],
+            lora_alpha=args.lora_alpha,
+            lora_dropout=args.lora_dropout,
+            bias="none",
+            use_gradient_checkpointing="unsloth",  # helps fit longer context in limited VRAM
+            random_state=3407,
+        )
+    except Exception as e:
+        logger.error("Failed to apply LoRA: %s", e)
+        raise SystemExit("LoRA setup failed.")
 
     print_vram("after_lora_attach")
 
