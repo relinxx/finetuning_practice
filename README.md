@@ -73,7 +73,7 @@ Run the installer:
 
 ### Option B: Native Windows (PowerShell)
 
-Create and activate a venv
+Create and activate a ven
 - `python -m venv .venv`
 - `.\.venv\Scripts\Activate.ps1`
 
