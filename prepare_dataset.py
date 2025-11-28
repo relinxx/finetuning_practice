@@ -24,11 +24,8 @@ Input formats:
 from __future__ import annotations
 
 import argparse
-import csv
-import json
 import logging
 from pathlib import Path
-from typing import Any, TypedDict
 
 from datasets import Dataset, DatasetDict
 from transformers import AutoTokenizer
@@ -41,14 +38,9 @@ from config import (
     DEFAULT_VAL_RATIO,
 )
 from logging_utils import setup_logging
+from utils import Example, build_text, load_rows
 
 logger = logging.getLogger(__name__)
-
-
-class Example(TypedDict):
-    instruction: str
-    input: str
-    output: str
 
 
 def load_rows(path: Path) -> list[Example]:

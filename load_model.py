@@ -32,6 +32,7 @@ from config import (
     DEFAULT_MODEL_ID,
 )
 from logging_utils import setup_logging
+from utils import print_vram, try_nvidia_smi
 
 logger = logging.getLogger(__name__)
 

@@ -38,6 +38,7 @@ from config import (
     DEFAULT_OLLAMA_OUT_DIR,
 )
 from logging_utils import setup_logging
+from utils import run
 
 logger = logging.getLogger(__name__)
 

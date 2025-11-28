@@ -32,6 +32,7 @@ import sys
 from pathlib import Path
 
 from logging_utils import setup_logging
+from utils import post_install_gpu_check, run, try_nvidia_smi
 
 logger = logging.getLogger(__name__)
 

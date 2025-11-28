@@ -50,22 +50,9 @@ from config import (
     DEFAULT_WARMUP_STEPS,
 )
 from logging_utils import setup_logging
+from utils import print_vram
 
 logger = logging.getLogger(__name__)
-
-
-def print_vram(tag: str) -> None:
-    if not torch.cuda.is_available():
-        logger.info("[%s] CUDA not available", tag)
-        return
-    idx = 0
-    props = torch.cuda.get_device_properties(idx)
-    total = props.total_memory / (1024**3)
-    alloc = torch.cuda.memory_allocated(idx) / (1024**3)
-    res = torch.cuda.memory_reserved(idx) / (1024**3)
-    logger.info("[%s] VRAM total=%.2fGB alloc=%.2fGB reserved=%.2fGB", tag, total, alloc, res)
-    if res / max(total, 1e-6) > 0.92:
-        logger.warning("[%s] reserved VRAM >92%% - reduce seq length/batch/grad_accum.", tag)
 
 
 def main() -> None:
