@@ -35,7 +35,7 @@ Script arguments (high level):
 - Sequence length: `--max_seq_length` in [prepare_dataset.py](prepare_dataset.py) and [train_finetune.py](train_finetune.py)
 - VRAM safety: keep batch size small; scale with `--gradient_accumulation_steps`
 
-Defaults are centralized in [config.py](config.py). Override via CLI arguments as needed.
+Defaults are centralized in [config.py](config.p). Override via CLI arguments as needed.
 
 Shared utilities are in [utils.py](utils.py)
 
