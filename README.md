@@ -39,7 +39,7 @@ Defaults are centralized in [config.py](config.p). Overrid vi CLI arguments as n
 
 Shared utilities are in [utils.py](utils.py)
 
-Run any script with `--help` for detailed usage and examples.
+Run any script with `--help` for detaild usage and examples.
 
 ## Testing
 
