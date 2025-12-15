@@ -35,7 +35,7 @@ Script arguments (high level):
 - Sequence length: `--max_seq_length` in [prepare_dataset.py](prepare_dataset.py) and [train_finetune.py](train_finetune.py)
 - VRAM safety: keep batch size small; scale with `--gradient_accumulation_steps`
 
-Defults are centad in [confg.y](cnfi.p). Overrd vi CLI argumets as needed.
+Defults are centd in [confg.y](cnfi.p). Overrd vi CLI argumets as needed.
 
 Shared utilities are in [utils.py](utils.py)
 
