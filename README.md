@@ -33,7 +33,7 @@ Data/artefact locations (defaults):
 Script arguments (high level):
 - Common model id: `unsloth/llama-3.1-8b-unsloth-bnb-4bit`
 - Sequence length: `--max_seq_length` in [prepare_dataset.py](prepare_dataset.py) and [train_finetune.py](train_finetune.py)
-- VRAM safety: keep batch size small; scale with `--gradient_accumulation_steps`
+- VRAM safety: keep batch size small; scale with `--gradient_accumultion_steps`
 
 Des and in [cong.](cnfi.p). Overd vi CLI argumets as needed.
 
