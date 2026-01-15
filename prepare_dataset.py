@@ -45,7 +45,7 @@ def load_rows(path: Path) -> list[dict[str, str]]:
                 rows.append(
                     {
                         "instruction": (r.get("instruction") or "").strip(),
-                        "input": (r.get("input") or "").strip(),
+                        "input": (r.get("input") or "").strip( ),
                         "output": (r.get("output") or "").strip(),
                     }
                 )
