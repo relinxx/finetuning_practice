@@ -1,0 +1,39 @@
+# finetuning_practice requirements
+#
+# Notes (Windows + RTX 5070):
+# - For CUDA builds of PyTorch, use the appropriate wheel index.
+#   Example (CUDA 12.1):
+#     pip install -r requirements.txt --index-url https://download.pytorch.org/whl/cu121
+# - For CPU-only PyTorch, use:
+#     pip install -r requirements.txt --index-url https://download.pytorch.org/whl/cpu
+# - Unsloth is most reliable on Linux/WSL2; native Windows may fail.
+
+# PyTorch (install with correct --index-url as noted above)
+torch
+torchvision
+torchaudio
+
+# Hugging Face + training stack
+transformers>=4.46.0
+datasets>=2.19.0
+accelerate>=0.33.0
+peft>=0.12.0
+trl>=0.10.0
+bitsandbytes>=0.43.0
+huggingface_hub>=0.24.0
+safetensors
+sentencepiece
+protobuf
+
+# Data + utilities
+pandas
+pyarrow
+tqdm
+rich
+
+# Unsloth
+unsloth
+
+# Ollama integration
+ollama>=0.3.0
+requests>=2.31.0
