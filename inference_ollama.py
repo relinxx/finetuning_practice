@@ -18,11 +18,17 @@ Notes:
 from __future__ import annotations
 
 import argparse
+import logging
 
 import ollama
 
+from logging_utils import setup_logging
+
+logger = logging.getLogger(__name__)
+
 
 def main() -> None:
+    setup_logging()
     parser = argparse.ArgumentParser(description="Interactive inference via Ollama")
     parser.add_argument("--model", type=str, default="finetuned-llama")
     parser.add_argument("--system", type=str, default="You are a helpful assistant.")
@@ -32,9 +38,9 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    print("Ollama interactive chat")
-    print(f"Model: {args.model}")
-    print("Type /exit to quit, /reset to clear chat history.\n")
+    logger.info("Ollama interactive chat")
+    logger.info("Model: %s", args.model)
+    logger.info("Type /exit to quit, /reset to clear chat history.\n")
 
     messages = [{"role": "system", "content": args.system}]
 
@@ -46,7 +52,7 @@ def main() -> None:
             break
         if user.lower() == "/reset":
             messages = [{"role": "system", "content": args.system}]
-            print("(history cleared)\n")
+            logger.info("(history cleared)\n")
             continue
 
         messages.append({"role": "user", "content": user})
@@ -72,10 +78,10 @@ def main() -> None:
                     print(token, end="", flush=True)
             print("\n")
         except Exception as e:
-            print("\nError talking to Ollama:", repr(e))
-            print("- Ensure Ollama is installed and running")
-            print("- Ensure the model exists: ollama list")
-            print("- Try: ollama run", args.model)
+            logger.error("Error talking to Ollama: %s", repr(e))
+            logger.info("- Ensure Ollama is installed and running")
+            logger.info("- Ensure the model exists: ollama list")
+            logger.info("- Try: ollama run %s", args.model)
             # Remove the last user message so we can retry cleanly.
             messages.pop()
             continue

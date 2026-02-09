@@ -22,6 +22,7 @@ Then:
 from __future__ import annotations
 
 import argparse
+import logging
 import os
 import shutil
 import subprocess
@@ -29,16 +30,22 @@ from pathlib import Path
 
 import torch
 
+from logging_utils import setup_logging
+
+logger = logging.getLogger(__name__)
+
 
 def run(cmd: list[str], *, check: bool = False) -> int:
-    print(f"\n[cmd] {' '.join(cmd)}")
+    logger.info("[cmd] %s", " ".join(cmd))
     p = subprocess.run(cmd, check=False)
     if check and p.returncode != 0:
+        logger.error("Command failed with exit code %s", p.returncode)
         raise SystemExit(p.returncode)
     return p.returncode
 
 
 def main() -> None:
+    setup_logging()
     parser = argparse.ArgumentParser(description="Export a fine-tuned model to Ollama")
     parser.add_argument(
         "--base_model",
@@ -81,7 +88,7 @@ def main() -> None:
     gguf_dir = out_dir / "gguf"
     gguf_dir.mkdir(parents=True, exist_ok=True)
 
-    print("Loading base + LoRA... (this may use significant VRAM)")
+    logger.info("Loading base + LoRA... (this may use significant VRAM)")
 
     from unsloth import FastLanguageModel
 
@@ -105,7 +112,7 @@ def main() -> None:
 
     # Merge into a full model folder. This can spike memory; if it fails, we still proceed to
     # attempt GGUF export directly (some exporters merge internally).
-    print("\nMerging adapter into base model (HF format)...")
+    logger.info("Merging adapter into base model (HF format)...")
     merged_ok = False
     try:
         if hasattr(model, "save_pretrained_merged"):
@@ -121,15 +128,15 @@ def main() -> None:
         else:
             raise RuntimeError("Model does not support merging (no save_pretrained_merged or merge_and_unload)")
         merged_ok = True
-        print(f"Merged HF model saved to: {merged_dir}")
+        logger.info("Merged HF model saved to: %s", merged_dir)
     except Exception as e:
-        print("Merge failed (often due to RAM/VRAM constraints).")
-        print("Error:", repr(e))
-        print("Continuing with GGUF export attempt anyway.")
+        logger.warning("Merge failed (often due to RAM/VRAM constraints).")
+        logger.error("Error: %s", repr(e))
+        logger.info("Continuing with GGUF export attempt anyway.")
 
     # Try GGUF export via Unsloth if available.
     gguf_path = None
-    print("\nAttempting GGUF export...")
+    logger.info("Attempting GGUF export...")
     try:
         if not hasattr(model, "save_pretrained_gguf"):
             raise RuntimeError("This Unsloth/PEFT stack does not expose save_pretrained_gguf")
@@ -145,16 +152,16 @@ def main() -> None:
         candidates = sorted(gguf_dir.glob("*.gguf"))
         if candidates:
             gguf_path = candidates[0]
-            print(f"GGUF written to: {gguf_path}")
+            logger.info("GGUF written to: %s", gguf_path)
         else:
-            print("GGUF export completed but no .gguf found; check output directory.")
+            logger.warning("GGUF export completed but no .gguf found; check output directory.")
 
     except Exception as e:
-        print("GGUF export not available / failed on this setup.")
-        print("Error:", repr(e))
+        logger.warning("GGUF export not available / failed on this setup.")
+        logger.error("Error: %s", repr(e))
 
         if merged_ok:
-            print(
+            logger.info(
                 "\nFallback option: convert merged HF model to GGUF using llama.cpp (recommended in WSL2/Linux).\n"
                 "Example (from a llama.cpp checkout):\n"
                 "  python convert_hf_to_gguf.py --outtype f16 --outfile model.gguf "
@@ -189,19 +196,19 @@ def main() -> None:
     )
 
     modelfile_path.write_text(modelfile, encoding="utf-8")
-    print(f"\nWrote Ollama Modelfile: {modelfile_path}")
+    logger.info("Wrote Ollama Modelfile: %s", modelfile_path)
 
     # Optionally create the model in Ollama.
     if args.create:
         if not shutil.which("ollama"):
-            print("ollama CLI not found on PATH. Install Ollama and ensure `ollama` is available.")
+            logger.warning("ollama CLI not found on PATH. Install Ollama and ensure `ollama` is available.")
         else:
             run(["ollama", "create", args.ollama_name, "-f", str(modelfile_path)], check=False)
             run(["ollama", "run", args.ollama_name, "Hello!"], check=False)
 
     # Final note on GPU usage.
     if torch.cuda.is_available():
-        print(
+        logger.info(
             "\nNote: Ollama GPU usage is managed by Ollama itself. "
             "If you see CPU-only inference, verify your Ollama installation supports CUDA on your OS."
         )

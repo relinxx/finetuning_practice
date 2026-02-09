@@ -23,6 +23,7 @@ Usage examples:
 from __future__ import annotations
 
 import argparse
+import logging
 import os
 import platform
 import shutil
@@ -30,10 +31,14 @@ import subprocess
 import sys
 from pathlib import Path
 
+from logging_utils import setup_logging
+
+logger = logging.getLogger(__name__)
+
 
 def run(cmd: list[str], *, check: bool = True) -> int:
     """Run a command and stream output to the console."""
-    print(f"\n[cmd] {' '.join(cmd)}")
+    logger.info("[cmd] %s", " ".join(cmd))
     proc = subprocess.run(cmd, check=False)
     if check and proc.returncode != 0:
         raise SystemExit(proc.returncode)
@@ -79,7 +84,9 @@ def try_nvidia_smi() -> None:
     """Print basic GPU + VRAM info via nvidia-smi if available."""
     exe = shutil.which("nvidia-smi")
     if not exe:
-        print("nvidia-smi not found on PATH (this is OK if NVIDIA drivers/tools are not installed).")
+        logger.info(
+            "nvidia-smi not found on PATH (this is OK if NVIDIA drivers/tools are not installed)."
+        )
         return
 
     # Query only what we need to keep output short and readable.
@@ -130,6 +137,7 @@ else:
 
 
 def main() -> None:
+    setup_logging()
     parser = argparse.ArgumentParser(description="Setup environment for Unsloth fine-tuning + Ollama")
     parser.add_argument(
         "--venv",
@@ -156,24 +164,24 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    print("System:", platform.platform())
+    logger.info("System: %s", platform.platform())
     if platform.system().lower() == "windows":
-        print(
+        logger.warning(
             "\nImportant: Unsloth is typically used on Linux/WSL2. "
             "If installs fail, use WSL2 Ubuntu and run these scripts there."
         )
     elif is_wsl():
-        print("Detected WSL: good option for CUDA-based fine-tuning on Windows.")
+        logger.info("Detected WSL: good option for CUDA-based fine-tuning on Windows.")
 
-    print("\nGPU check via nvidia-smi (if available):")
+    logger.info("GPU check via nvidia-smi (if available):")
     try_nvidia_smi()
 
     if args.venv:
         python_exe = ensure_venv(Path(args.venv))
-        print(f"\nUsing venv python: {python_exe}")
+        logger.info("Using venv python: %s", python_exe)
     else:
         python_exe = Path(sys.executable)
-        print(f"\nUsing current python: {python_exe}")
+        logger.info("Using current python: %s", python_exe)
 
     if args.post_check_only:
         post_install_gpu_check(python_exe)
@@ -205,33 +213,33 @@ def main() -> None:
 
     # Install PyTorch first from the chosen CUDA wheel index.
     torch_pkgs = ["torch", "torchvision", "torchaudio"]
-    print("\nInstalling PyTorch CUDA wheels...")
+    logger.info("Installing PyTorch CUDA wheels...")
     pip_install(python_exe, torch_pkgs, extra_args=["--index-url", args.torch_index_url])
 
     # Install the rest.
-    print("\nInstalling Hugging Face / training dependencies...")
+    logger.info("Installing Hugging Face / training dependencies...")
     pip_install(python_exe, common)
-    print("\nInstalling Ollama Python client...")
+    logger.info("Installing Ollama Python client...")
     pip_install(python_exe, ollama)
 
     if not args.skip_unsloth:
-        print("\nInstalling Unsloth...")
+        logger.info("Installing Unsloth...")
         pip_install(python_exe, ["unsloth"])
     else:
-        print("\nSkipping Unsloth install (--skip_unsloth set).")
+        logger.info("Skipping Unsloth install (--skip_unsloth set).")
 
-    print("\nPost-install GPU verification:")
+    logger.info("Post-install GPU verification:")
     post_install_gpu_check(python_exe)
 
-    print("\nNext steps:")
+    logger.info("Next steps:")
     if args.venv and platform.system().lower() == "windows":
         venv_dir = Path(args.venv).resolve()
-        print(f"  Activate venv (PowerShell): {venv_dir}\\Scripts\\Activate.ps1")
+        logger.info("  Activate venv (PowerShell): %s\\Scripts\\Activate.ps1", venv_dir)
     elif args.venv:
         venv_dir = Path(args.venv).resolve()
-        print(f"  Activate venv (bash): source {venv_dir}/bin/activate")
+        logger.info("  Activate venv (bash): source %s/bin/activate", venv_dir)
 
-    print("  Run: python load_model.py")
+    logger.info("  Run: python load_model.py")
 
 
 if __name__ == "__main__":

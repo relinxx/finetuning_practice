@@ -26,11 +26,16 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
 from datasets import Dataset, DatasetDict
 from transformers import AutoTokenizer
+
+from logging_utils import setup_logging
+
+logger = logging.getLogger(__name__)
 
 
 def load_rows(path: Path) -> list[dict[str, str]]:
@@ -112,6 +117,7 @@ def build_text(instruction: str, user_input: str, output: str) -> str:
 
 
 def main() -> None:
+    setup_logging()
     parser = argparse.ArgumentParser(description="Prepare/tokenize dataset for Unsloth fine-tuning")
     parser.add_argument("--data", type=str, required=True, help="Path to CSV/JSON/JSONL")
     parser.add_argument(
@@ -136,7 +142,7 @@ def main() -> None:
     if not rows:
         raise SystemExit("No valid rows found. Ensure 'instruction' and 'output' are non-empty.")
 
-    print(f"Loaded {len(rows)} examples")
+    logger.info("Loaded %s examples", len(rows))
 
     # Tokenization does not need the model or GPU. Avoid loading weights to prevent VRAM spikes.
     tokenizer = AutoTokenizer.from_pretrained(args.model, use_fast=True)
@@ -169,8 +175,8 @@ def main() -> None:
         dsd = DatasetDict({"train": ds_tok})
 
     dsd.save_to_disk(str(out_dir))
-    print(f"Saved tokenized dataset to: {out_dir}")
-    print("Fields:", dsd["train"].column_names)
+    logger.info("Saved tokenized dataset to: %s", out_dir)
+    logger.info("Fields: %s", dsd["train"].column_names)
 
 
 if __name__ == "__main__":

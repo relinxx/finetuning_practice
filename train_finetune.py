@@ -24,6 +24,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import logging
 import os
 from pathlib import Path
 
@@ -31,22 +32,27 @@ import torch
 from datasets import load_from_disk
 from transformers import TrainingArguments
 
+from logging_utils import setup_logging
+
+logger = logging.getLogger(__name__)
+
 
 def print_vram(tag: str) -> None:
     if not torch.cuda.is_available():
-        print(f"[{tag}] CUDA not available")
+        logger.info("[%s] CUDA not available", tag)
         return
     idx = 0
     props = torch.cuda.get_device_properties(idx)
     total = props.total_memory / (1024**3)
     alloc = torch.cuda.memory_allocated(idx) / (1024**3)
     res = torch.cuda.memory_reserved(idx) / (1024**3)
-    print(f"[{tag}] VRAM total={total:.2f}GB alloc={alloc:.2f}GB reserved={res:.2f}GB")
+    logger.info("[%s] VRAM total=%.2fGB alloc=%.2fGB reserved=%.2fGB", tag, total, alloc, res)
     if res / max(total, 1e-6) > 0.92:
-        print(f"[{tag}] WARNING: reserved VRAM >92% — reduce seq length/batch/grad_accum.")
+        logger.warning("[%s] reserved VRAM >92%% - reduce seq length/batch/grad_accum.", tag)
 
 
 def main() -> None:
+    setup_logging()
     parser = argparse.ArgumentParser(description="Fine-tune a 4-bit model with Unsloth QLoRA")
     parser.add_argument(
         "--model",
@@ -94,9 +100,9 @@ def main() -> None:
     train_ds = dsd["train"]
     eval_ds = dsd.get("validation") if args.do_eval and "validation" in dsd else None
 
-    print("Train size:", len(train_ds))
+    logger.info("Train size: %s", len(train_ds))
     if eval_ds is not None:
-        print("Val size:", len(eval_ds))
+        logger.info("Val size: %s", len(eval_ds))
 
     from unsloth import FastLanguageModel, is_bfloat16_supported
 
@@ -170,10 +176,10 @@ def main() -> None:
         packing=False,  # safer for small VRAM; set True for higher throughput if you have headroom
     )
 
-    print("\nStarting training...")
+    logger.info("Starting training...")
     trainer.train()
 
-    print("\nSaving LoRA adapter + tokenizer...")
+    logger.info("Saving LoRA adapter + tokenizer...")
     model.save_pretrained(str(out_dir))
     tokenizer.save_pretrained(str(out_dir))
 
@@ -185,7 +191,7 @@ def main() -> None:
 
         # This creates a full model folder (still HF format). You can convert this to GGUF later.
         # Merging can temporarily increase RAM/VRAM usage; do it only if you have headroom.
-        print("\nMerging LoRA into base model and saving full model...")
+        logger.info("Merging LoRA into base model and saving full model...")
         try:
             if hasattr(model, "save_pretrained_merged"):
                 model.save_pretrained_merged(
@@ -202,11 +208,13 @@ def main() -> None:
                 else:
                     raise RuntimeError("Model does not support merging (no save_pretrained_merged or merge_and_unload)")
 
-            print(f"Saved merged model to: {merge_out}")
+            logger.info("Saved merged model to: %s", merge_out)
         except Exception as e:
-            print("Merge failed (often due to memory limits or unsupported method on your setup).")
-            print("Error:", repr(e))
-            print("You can still export by loading base + adapter and merging during export.")
+            logger.warning(
+                "Merge failed (often due to memory limits or unsupported method on your setup)."
+            )
+            logger.error("Error: %s", repr(e))
+            logger.info("You can still export by loading base + adapter and merging during export.")
 
 
 if __name__ == "__main__":

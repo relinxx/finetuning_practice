@@ -17,17 +17,22 @@ Notes:
 from __future__ import annotations
 
 import argparse
+import logging
 import os
 import shutil
 import subprocess
 
 import torch
 
+from logging_utils import setup_logging
+
+logger = logging.getLogger(__name__)
+
 
 def print_vram(tag: str) -> None:
     """Print torch-reported VRAM stats."""
     if not torch.cuda.is_available():
-        print(f"[{tag}] CUDA not available")
+        logger.info("[%s] CUDA not available", tag)
         return
 
     idx = 0
@@ -36,14 +41,17 @@ def print_vram(tag: str) -> None:
     alloc_gb = torch.cuda.memory_allocated(idx) / (1024**3)
     res_gb = torch.cuda.memory_reserved(idx) / (1024**3)
 
-    print(f"[{tag}] GPU: {props.name}")
-    print(f"[{tag}] Total VRAM: {total_gb:.2f} GB")
-    print(f"[{tag}] torch allocated: {alloc_gb:.2f} GB")
-    print(f"[{tag}] torch reserved:  {res_gb:.2f} GB")
+    logger.info("[%s] GPU: %s", tag, props.name)
+    logger.info("[%s] Total VRAM: %.2f GB", tag, total_gb)
+    logger.info("[%s] torch allocated: %.2f GB", tag, alloc_gb)
+    logger.info("[%s] torch reserved: %.2f GB", tag, res_gb)
 
     # Simple heuristic warning.
     if res_gb / max(total_gb, 1e-6) > 0.90:
-        print(f"[{tag}] WARNING: VRAM reserved >90% of total. Consider lowering seq length/batch size.")
+        logger.warning(
+            "[%s] VRAM reserved >90%% of total. Consider lowering seq length/batch size.",
+            tag,
+        )
 
 
 def try_nvidia_smi() -> None:
@@ -61,6 +69,7 @@ def try_nvidia_smi() -> None:
 
 
 def main() -> None:
+    setup_logging()
     parser = argparse.ArgumentParser(description="Load a 4-bit Unsloth model and print VRAM usage")
     parser.add_argument(
         "--model",
@@ -79,8 +88,8 @@ def main() -> None:
     os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "max_split_size_mb:128")
     os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
-    print("torch:", torch.__version__)
-    print("CUDA available:", torch.cuda.is_available())
+    logger.info("torch: %s", torch.__version__)
+    logger.info("CUDA available: %s", torch.cuda.is_available())
     if torch.cuda.is_available():
         try_nvidia_smi()
 
@@ -128,7 +137,7 @@ def main() -> None:
         if p.requires_grad:
             trainable += num
     pct = 100.0 * trainable / max(total, 1)
-    print(f"Trainable params: {trainable:,} / {total:,} ({pct:.2f}%)")
+    logger.info("Trainable params: %s / %s (%.2f%%)", f"{trainable:,}", f"{total:,}", pct)
 
     # Quick smoke generation (kept tiny to avoid surprise VRAM spikes).
     prompt = "Write one short sentence about GPU memory." 
@@ -140,7 +149,7 @@ def main() -> None:
             do_sample=True,
             temperature=0.7,
         )
-    print("\nSample output:\n", tokenizer.decode(out[0], skip_special_tokens=True))
+    logger.info("Sample output: %s", tokenizer.decode(out[0], skip_special_tokens=True))
 
 
 if __name__ == "__main__":
